@@ -69,7 +69,7 @@ def gen_req(files):
 
 def get_paste(id):
     url = 'http://gist.github.com/%s.txt' % id
-    return urllib.urlopen(url).read()
+    return urllib2.urlopen(url).read()
 
 if __name__ == '__main__':
     from optparse import OptionParser
@@ -83,13 +83,13 @@ if __name__ == '__main__':
 
     opts, args = parser.parse_args()
 
+    if opts.gist_id:
+        print get_paste(opts.gist_id)
+        sys.exit()
+
     # Print message with no arguments so users don't think its hung
     if os.isatty(sys.stdin.fileno()) and not args:
         parser.print_help()
-        sys.exit()
-
-    if opts.gist_id:
-        print get_paste(opts.gist_id)
         sys.exit()
 
     if len(args) < 1:
