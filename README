@@ -1,0 +1,15 @@
+Python command line client for gist.github.com
+
+Based on Chris Wanstrath's ruby gist client: 
+    http://github.com/defunkt/gist/tree/master
+    
+Usage:
+    cat file.txt | pygist
+    pygist file1 file2 file3 file4
+    pygist -g 1234 > something.txt
+
+Todo:
+  Add private pastes
+
+Bugs:
+  Multiple gists work oddly or not at all.

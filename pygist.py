@@ -44,10 +44,11 @@ from urllib import urlencode as urlencode
 site = 'http://gist.github.com/gists'
 
 def gen_req(files):
-    i = 1
+    i = 0
     data = []
 
     for filename in files:
+        i += 1
         if filename is sys.stdin:
             ext = '.txt'
             contents = sys.stdin.read()
@@ -56,14 +57,12 @@ def gen_req(files):
             contents = open(filename).read()
 
         fname = os.path.basename(filename)
-
         tmp = {
             'file_ext[gistfile%d]' % i: ext,
             'file_name[gistfile%d]' % i: fname,
             'file_contents[gistfile%d]' % i: contents,
         }
         data.append(urlencode(tmp))
-        i += 1
 
     return ''.join(data)
 
