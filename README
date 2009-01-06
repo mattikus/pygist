@@ -2,6 +2,9 @@ Python command line client for gist.github.com
 
 Based on Chris Wanstrath's ruby gist client: 
     http://github.com/defunkt/gist/tree/master
+
+Install:
+    wget http://github.com/mattikus/pygist/raw/master/pygist.py -O ~/bin/pygist
     
 Usage:
     cat file.txt | pygist
