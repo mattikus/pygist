@@ -50,10 +50,11 @@ def gen_req(files):
     for filename in files:
         if filename is sys.stdin:
             ext = '.txt'
+            contents = sys.stdin.read()
         else:
             ext = os.path.splitext(filename)[1]
+            contents = open(filename).read()
 
-        contents = open(filename).read()
         fname = os.path.basename(filename)
 
         tmp = {
@@ -66,20 +67,35 @@ def gen_req(files):
 
     return ''.join(data)
 
+def get_paste(id):
+    url = 'http://gist.github.com/%s.txt' % id
+    return urllib.urlopen(url).read()
+
 if __name__ == '__main__':
     from optparse import OptionParser
 
     parser = OptionParser(version=__version__)
     parser.set_usage("%prog [options] [file1 file2 ...]")
-    parser.set_description(__doc__)
+    parser.set_description("Python command line client for gist.github.com")
+    parser.disable_interspersed_args()
+    parser.add_option('-g', dest='gist_id', 
+                      help='retreive a paste identified by the gist id')
 
     opts, args = parser.parse_args()
 
     # Print message with no arguments so users don't think its hung
-    if os.isatty(sys.stdin.fileno()) and not args and not opts.getlang:
+    if os.isatty(sys.stdin.fileno()) and not args:
         parser.print_help()
         sys.exit()
 
-    data = gen_req(args)
+    if opts.gist_id:
+        print get_paste(opts.gist_id)
+        sys.exit()
+
+    if len(args) < 1:
+        data = gen_req([sys.stdin])
+    else:
+        data = gen_req(args)
+
     info = urllib2.urlopen(site, data)
     print info.geturl()
