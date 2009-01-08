@@ -76,9 +76,10 @@ def gen_req(files, private, anon):
         else:
             ext = os.path.splitext(filename)[1]
             contents = open(filename).read()
+            fname = filename
 
         data['file_ext[gistfile%d]' % i] = ext
-        data['file_name[gistfile%d]' % i] = filename
+        data['file_name[gistfile%d]' % i] = fname
         data['file_contents[gistfile%d]' % i] = contents
 
 
