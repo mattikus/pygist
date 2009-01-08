@@ -8,6 +8,8 @@ Based on Chris Wanstrath's ruby gist client:
 Usage:
     cat file.txt | pygist
     pygist file1 file2 file3 file4
+    pygist -p file1
+    echo 'hello world' | pygist -a
     pygist -g 1234 > something.txt
 
 """
@@ -37,34 +39,50 @@ THE SOFTWARE.
 
 import os
 import sys
+import subprocess
 import urllib2
 
 from urllib import urlencode as urlencode
 
 site = 'http://gist.github.com/gists'
 
-def gen_req(files):
+def get_gh_login():
+    user = subprocess.Popen("git config --global github.user", shell=True, 
+                            stdout=subprocess.PIPE).communicate()[0].strip()
+    token = subprocess.Popen("git config --global github.token", shell=True, 
+                             stdout=subprocess.PIPE).communicate()[0].strip()
+
+    return (user, token)
+
+def gen_req(files, private, anon):
     i = 0
-    data = []
+    data = {}
+
+    if not anon:
+        user, token = get_gh_login()
+        if all((user, token)):
+            data['login'] = user
+            data['token'] = token
+
+        if private:
+            data['private'] = 'on'
 
     for filename in files:
         i += 1
         if filename is sys.stdin:
-            ext = '.txt'
+            ext = ''
             contents = sys.stdin.read()
+            fname = ''
         else:
             ext = os.path.splitext(filename)[1]
             contents = open(filename).read()
 
-        fname = os.path.basename(filename)
-        tmp = {
-            'file_ext[gistfile%d]' % i: ext,
-            'file_name[gistfile%d]' % i: fname,
-            'file_contents[gistfile%d]' % i: contents,
-        }
-        data.append(urlencode(tmp))
+        data['file_ext[gistfile%d]' % i] = ext
+        data['file_name[gistfile%d]' % i] = filename
+        data['file_contents[gistfile%d]' % i] = contents
 
-    return ''.join(data)
+
+    return urlencode(data)
 
 def get_paste(id):
     url = 'http://gist.github.com/%s.txt' % id
@@ -79,6 +97,10 @@ if __name__ == '__main__':
     parser.disable_interspersed_args()
     parser.add_option('-g', dest='gist_id', 
                       help='retreive a paste identified by the gist id')
+    parser.add_option('-p', dest='private', action='store_true',
+                      help='set for private gist')
+    parser.add_option('-a', dest='anon', action='store_true',
+                      help='set for anonymous gist')
 
     opts, args = parser.parse_args()
 
@@ -92,9 +114,9 @@ if __name__ == '__main__':
         sys.exit()
 
     if len(args) < 1:
-        data = gen_req([sys.stdin])
+        data = gen_req([sys.stdin], opts.private, opts.anon)
     else:
-        data = gen_req(args)
+        data = gen_req(args, opts.private, opts.anon)
 
     info = urllib2.urlopen(site, data)
     print info.geturl()

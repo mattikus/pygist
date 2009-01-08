@@ -9,6 +9,8 @@ Install:
 Usage:
     cat file.txt | pygist
     pygist file1 file2 file3 file4
+    pygist -p file1
+    echo 'hello world' | pygist -a
     pygist -g 1234 > something.txt
 
 Todo:
