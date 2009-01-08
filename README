@@ -14,7 +14,4 @@ Usage:
     pygist -g 1234 > something.txt
 
 Todo:
-  Add private pastes
-
-Bugs:
-  Multiple gists work oddly or not at all.
+    Add clipboard support
