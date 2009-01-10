@@ -89,6 +89,20 @@ def get_paste(id):
     url = 'http://gist.github.com/%s.txt' % id
     return urllib2.urlopen(url).read()
 
+def copy_paste(url):
+    cmd = ''
+    if sys.platform == 'darwin':
+        cmd = subprocess.Popen('which pbcopy', shell=True,
+                               stdout=subprocess.PIPE).stdout.read()
+    if 'linux' in sys.platform:
+        cmd = subprocess.Popen('which xclip', shell=True,
+                               stdout=subprocess.PIPE).stdout.read()
+    if cmd:
+        output = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE)
+        output.stdin.write(url)
+        output.stdin.close()
+
+    return url
 if __name__ == '__main__':
     from optparse import OptionParser
 
@@ -120,4 +134,4 @@ if __name__ == '__main__':
         data = gen_req(args, opts.private, opts.anon)
 
     info = urllib2.urlopen(site, data)
-    print info.geturl()
+    print copy_paste(info.geturl())
