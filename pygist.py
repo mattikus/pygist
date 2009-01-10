@@ -47,9 +47,14 @@ from urllib import urlencode as urlencode
 site = 'http://gist.github.com/gists'
 
 def get_gh_login():
-    user = subprocess.Popen("git config --global github.user", shell=True, 
+    cmd = subprocess.Popen("which git", shell=True,
+                           stdout=subprocess.PIPE).stdout.read().strip()
+    if not cmd:
+        return
+
+    user = subprocess.Popen(cmd + " config --global github.user", shell=True,
                             stdout=subprocess.PIPE).communicate()[0].strip()
-    token = subprocess.Popen("git config --global github.token", shell=True, 
+    token = subprocess.Popen(cmd + " config --global github.token", shell=True, 
                              stdout=subprocess.PIPE).communicate()[0].strip()
 
     return (user, token)
@@ -93,10 +98,10 @@ def copy_paste(url):
     cmd = ''
     if sys.platform == 'darwin':
         cmd = subprocess.Popen('which pbcopy', shell=True,
-                               stdout=subprocess.PIPE).stdout.read()
+                               stdout=subprocess.PIPE).stdout.read().strip()
     if 'linux' in sys.platform:
         cmd = subprocess.Popen('which xclip', shell=True,
-                               stdout=subprocess.PIPE).stdout.read()
+                               stdout=subprocess.PIPE).stdout.read().strip()
     if cmd:
         output = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE)
         output.stdin.write(url)
