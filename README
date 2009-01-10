@@ -13,5 +13,5 @@ Usage:
     echo 'hello world' | pygist -a
     pygist -g 1234 > something.txt
 
-Todo:
-    Add clipboard support
+Bugs:
+    No known bugs, feel free to email me at matt@mattikus.com if you find any.
