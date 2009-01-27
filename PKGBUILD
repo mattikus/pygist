@@ -2,16 +2,17 @@
 
 pkgname=pygist-git
 pkgver=20090108
-pkgrel=1
+pkgrel=2
 pkgdesc="Python command line interface with gist.github.com"
 url="http://github.com/mattikus/pygist/tree/master"
 arch=('i686' 'x86_64')
 license=('MIT')
 depends=('python')
+optdepends=('git: utilizes git-config to gather user information for github'
+            'xclip: will yank pastes to clipboard automagically')
 makedepends=('git')
 conflicts=('pygist')
 replaces=('pygist')
-install=('pygist-git.install')
 backup=()
 source=()
 md5sums=()
