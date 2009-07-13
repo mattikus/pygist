@@ -79,6 +79,9 @@ def gen_req(files, private, anon):
             contents = sys.stdin.read()
             fname = ''
         else:
+            if not os.path.isfile(filename):
+                print "'%s' does not exist or is not a regular file" % filename
+                sys.exit()
             ext = os.path.splitext(filename)[1]
             contents = open(filename).read()
             fname = filename
@@ -98,10 +101,10 @@ def copy_paste(url):
     cmd = ''
     if sys.platform == 'darwin':
         cmd = subprocess.Popen('which pbcopy', shell=True,
-                               stdout=subprocess.PIPE).stdout.read().strip()
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read().strip()
     if 'linux' in sys.platform:
         cmd = subprocess.Popen('which xclip', shell=True,
-                               stdout=subprocess.PIPE).stdout.read().strip()
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read().strip()
     if cmd:
         output = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE)
         output.stdin.write(url)
