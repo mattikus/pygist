@@ -42,7 +42,7 @@ import sys
 import subprocess
 import urllib2
 
-from urllib import urlencode as urlencode
+from urllib import urlencode
 
 site = 'http://gist.github.com/gists'
 
