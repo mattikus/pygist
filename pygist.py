@@ -46,16 +46,26 @@ from urllib import urlencode
 
 site = 'http://gist.github.com/gists'
 
+def get_command_output(argv):
+    sp = subprocess.Popen(argv,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE)
+    (out, err) = sp.communicate()
+    if sp.returncode != 0:
+        return None
+    if len(err) != 0:
+        return None
+    return out
+
 def get_gh_login():
-    cmd = subprocess.Popen("which git", shell=True,
-                           stdout=subprocess.PIPE).stdout.read().strip()
+    cmd = get_command_output(['which', 'git']).strip()
     if not cmd:
         return
 
-    user = subprocess.Popen(cmd + " config --global github.user", shell=True,
-                            stdout=subprocess.PIPE).communicate()[0].strip()
-    token = subprocess.Popen(cmd + " config --global github.token", shell=True, 
-                             stdout=subprocess.PIPE).communicate()[0].strip()
+    user = get_command_output([cmd, 'config', '--global', 'github.user'])
+    user = user.strip()
+    token = get_command_output([cmd, 'config', '--global', 'github.token'])
+    token = token.strip()
 
     return (user, token)
 
@@ -98,19 +108,18 @@ def get_paste(id):
     return urllib2.urlopen(url).read()
 
 def copy_paste(url):
-    cmd = ''
+    cmd = None
     if sys.platform == 'darwin':
-        cmd = subprocess.Popen('which pbcopy', shell=True,
-                               stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read().strip()
+        cmd = cmd or get_command_output(['which', 'pbcopy']).strip()
     if 'linux' in sys.platform:
-        cmd = subprocess.Popen('which xclip', shell=True,
-                               stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read().strip()
+        cmd = cmd or get_command_output(['which', 'xclip']).strip()
     if cmd:
-        output = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE)
+        output = subprocess.Popen(cmd, stdin=subprocess.PIPE)
         output.stdin.write(url)
         output.stdin.close()
 
     return url
+
 if __name__ == '__main__':
     from optparse import OptionParser
 
