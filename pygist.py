@@ -118,8 +118,6 @@ def copy_paste(url):
         output.stdin.write(url)
         output.stdin.close()
 
-    return url
-
 if __name__ == '__main__':
     from optparse import OptionParser
 
@@ -151,4 +149,5 @@ if __name__ == '__main__':
         data = gen_req(args, opts.private, opts.anon)
 
     info = urllib2.urlopen(site, data)
-    print copy_paste(info.geturl())
+    print info.geturl()
+    copy_paste(info.geturl())
