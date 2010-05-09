@@ -111,8 +111,7 @@ def copy_paste(url):
     cmd = None
     if sys.platform == 'darwin':
         cmd = cmd or get_command_output(['which', 'pbcopy']).strip()
-    if 'linux' in sys.platform:
-        cmd = cmd or get_command_output(['which', 'xclip']).strip()
+    cmd = cmd or get_command_output(['which', 'xclip']).strip()
     if cmd:
         output = subprocess.Popen(cmd, stdin=subprocess.PIPE)
         output.stdin.write(url)
