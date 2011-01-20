@@ -44,7 +44,7 @@ import urllib2
 
 from urllib import urlencode
 
-site = 'http://gist.github.com/gists'
+site = 'https://gist.github.com/gists'
 
 def get_command_output(argv):
     sp = subprocess.Popen(argv,
