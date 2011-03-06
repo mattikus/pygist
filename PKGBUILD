@@ -1,11 +1,11 @@
 # Contributor: Matt Kemp <matt@mattikus.com>
 
 pkgname=pygist-git
-pkgver=20090108
-pkgrel=2
+pkgver=20110305
+pkgrel=1
 pkgdesc="Python command line interface with gist.github.com"
 url="http://github.com/mattikus/pygist/tree/master"
-arch=('i686' 'x86_64')
+arch=('any')
 license=('MIT')
 depends=('python')
 optdepends=('git: utilizes git-config to gather user information for github'
@@ -13,32 +13,31 @@ optdepends=('git: utilizes git-config to gather user information for github'
 makedepends=('git')
 conflicts=('pygist')
 replaces=('pygist')
-backup=()
-source=()
-md5sums=()
 
 _gitroot="git://github.com/mattikus/pygist.git"
 _gitname="pygist"
 
 build() {
-  cd ${srcdir}
-  msg "Connecting to github.com GIT server...."
+  cd "$srcdir"
+  msg "Connecting to GIT server...."
 
-  if [ -d ${srcdir}/$_gitname ] ; then
-  cd $_gitname && git pull origin
-  msg "The local files are updated."
+  if [ -d $_gitname ]; then
+    cd $_gitname && git pull origin
+    msg "The local files are updated."
   else
-  git clone $_gitroot
+    git clone $_gitroot $_gitname
   fi
 
   msg "GIT checkout done or server timeout"
   msg "Starting make..."
 
-  cp -r ${srcdir}/$_gitname ${srcdir}/$_gitname-build
+  rm -rf "$srcdir/$_gitname-build"
+  git clone "$srcdir/$_gitname" "$srcdir/$_gitname-build"
+}
+
+package() {
   cd ${srcdir}/$_gitname-build
-    
-  chmod +x pygist.py
-  mkdir -p ${pkgdir}/usr/bin/
-  cp pygist.py ${pkgdir}/usr/bin/pygist
+
+  install -m755 pygist.py -D ${pkgdir}/usr/bin/pygist
 } 
 
