@@ -14,7 +14,7 @@ Basic usage:
 
 """
 __author__ = 'Matt Kemp <matt@mattikus.com>'
-__version__ = 'pygist 0.2 3/5/11'
+__version__ = 'pygist 2.0 3/5/11'
 __license__ = """
 Copyright (c) 2011 Matt Kemp <matt@mattikus.com>
 
