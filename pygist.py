@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Python command line client for gist.github.com
 
-Based on Chris Wanstrath's ruby gist client: 
+Based on Chris Wanstrath's ruby gist client:
     http://github.com/defunkt/gist/tree/master
-    
-Usage:
+
+Basic usage:
     cat file.txt | pygist
     pygist file1 file2 file3 file4
     pygist -p file1
@@ -14,9 +14,9 @@ Usage:
 
 """
 __author__ = 'Matt Kemp <matt@mattikus.com>'
-__version__ = 'pygist 0.1 1/6/09'
+__version__ = 'pygist 0.2 3/5/11'
 __license__ = """
-Copyright (c) 2008 Matt Kemp <matt@mattikus.com>
+Copyright (c) 2011 Matt Kemp <matt@mattikus.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -40,36 +40,24 @@ THE SOFTWARE.
 import os
 import sys
 import subprocess
-import urllib2
 
-from urllib import urlencode
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from urllib.request import urlopen
+from urllib.parse import urlencode
 
 site = 'https://gist.github.com/gists'
 
-def get_command_output(argv):
-    sp = subprocess.Popen(argv,
-                          stdout=subprocess.PIPE,
-                          stderr=subprocess.PIPE)
-    (out, err) = sp.communicate()
-    if sp.returncode != 0:
-        return None
-    if len(err) != 0:
-        return None
-    return out
-
 def get_gh_login():
-    cmd = get_command_output(['which', 'git']).strip()
+    cmd = subprocess.getoutput('which git')
     if not cmd:
         return
 
-    user = get_command_output([cmd, 'config', '--global', 'github.user'])
-    user = user.strip()
-    token = get_command_output([cmd, 'config', '--global', 'github.token'])
-    token = token.strip()
+    user = subprocess.getoutput('{0} config --global github.user'.format(cmd))
+    token = subprocess.getoutput('{0} config --global github.token'.format(cmd))
 
-    return (user, token)
+    return user, token
 
-def gen_req(files, private, anon):
+def gen_request(files, private, anon):
     i = 0
     data = {}
 
@@ -85,68 +73,76 @@ def gen_req(files, private, anon):
     for filename in files:
         i += 1
         if filename is sys.stdin:
-            ext = ''
+            filename = ''
+            extension = ''
             contents = sys.stdin.read()
-            fname = ''
         else:
             if not os.path.isfile(filename):
-                print "'%s' does not exist or is not a regular file" % filename
+                print("'{0}' does not exist or is not a regular file".format(filename))
                 sys.exit()
-            ext = os.path.splitext(filename)[1]
-            contents = open(filename).read()
-            fname = filename
+            extension = os.path.splitext(filename)[1]
+            with open(filename) as file:
+                contents = file.read()
 
-        data['file_ext[gistfile%d]' % i] = ext
-        data['file_name[gistfile%d]' % i] = fname
-        data['file_contents[gistfile%d]' % i] = contents
+        data['file_ext[gistfile{0:d}]'.format(i)] = extension
+        data['file_name[gistfile{0:d}]'.format(i)] = filename
+        data['file_contents[gistfile{0:d}]'.format(i)] = contents
 
 
-    return urlencode(data)
+    return urlencode(data).encode('utf8')
 
-def get_paste(id):
-    url = 'http://gist.github.com/%s.txt' % id
-    return urllib2.urlopen(url).read()
+def get_gist(id):
+    url = 'https://gist.github.com/%s.txt' % id
+    with urlopen(url) as info:
+        data = info.read()
+    sys.stdout.write(data.decode('utf8'))
 
 def copy_paste(url):
     cmd = None
     if sys.platform == 'darwin':
-        cmd = cmd or get_command_output(['which', 'pbcopy']).strip()
-    cmd = cmd or get_command_output(['which', 'xclip']).strip()
+        cmd = cmd or subprocess.getoutput('which pbcopy')
+    cmd = cmd or subprocess.getoutput('which xclip')
     if cmd:
         output = subprocess.Popen(cmd, stdin=subprocess.PIPE)
         output.stdin.write(url)
         output.stdin.close()
+        return True
+    else:
+        return False
+
+def main():
+    parser = ArgumentParser(description=__doc__,
+                            formatter_class=RawDescriptionHelpFormatter)
+    parser.add_argument('-v', '--version', action='version', version=__version__)
+    parser.add_argument('-g', dest='gist_id',
+                        help='retreive a paste identified by the gist id')
+    parser.add_argument('-p', dest='private', action='store_true',
+                        help='set for private gist')
+    parser.add_argument('-a', dest='anon', action='store_true',
+                        help='set for anonymous gist')
+    parser.add_argument('file', nargs='*', help='file to paste to gist')
+    args = parser.parse_args()
+
+    if args.gist_id:
+        get_gist(args.gist_id)
+        sys.exit()
+
+    if sys.stdin.isatty() and not args.file:
+        parser.print_help()
+        sys.exit(1)
+
+    if len(args.file) < 1:
+        data = gen_request([sys.stdin], args.private, args.anon)
+    else:
+        data = gen_request(args.file, args.private, args.anon)
+
+    with urlopen(site, data) as info:
+        url = info.geturl()
+
+    if copy_paste(url.encode('utf8')):
+        print('{0} | copied to clipboard successfully.'.format(url))
+    else:
+        print('{0}'.format(url))
 
 if __name__ == '__main__':
-    from optparse import OptionParser
-
-    parser = OptionParser(version=__version__)
-    parser.set_usage("%prog [options] [file1 file2 ...]")
-    parser.set_description("Python command line client for gist.github.com")
-    parser.disable_interspersed_args()
-    parser.add_option('-g', dest='gist_id', 
-                      help='retreive a paste identified by the gist id')
-    parser.add_option('-p', dest='private', action='store_true',
-                      help='set for private gist')
-    parser.add_option('-a', dest='anon', action='store_true',
-                      help='set for anonymous gist')
-
-    opts, args = parser.parse_args()
-
-    if opts.gist_id:
-        print get_paste(opts.gist_id)
-        sys.exit()
-
-    # Print message with no arguments so users don't think its hung
-    if os.isatty(sys.stdin.fileno()) and not args:
-        parser.print_help()
-        sys.exit()
-
-    if len(args) < 1:
-        data = gen_req([sys.stdin], opts.private, opts.anon)
-    else:
-        data = gen_req(args, opts.private, opts.anon)
-
-    info = urllib2.urlopen(site, data)
-    print info.geturl()
-    copy_paste(info.geturl())
+    main()
