@@ -36,8 +36,8 @@ build() {
 }
 
 package() {
-  cd ${srcdir}/$_gitname-build
+  cd "$srcdir/$_gitname-build"
 
-  install -m755 pygist.py -D ${pkgdir}/usr/bin/pygist
+  install -m755 pygist.py -D "$pkgdir/usr/bin/pygist"
 } 
 
