@@ -57,7 +57,7 @@ def get_gh_login():
 
     return user, token
 
-def gen_request(files, private, anon):
+def gen_request(files, private, anon, description):
     i = 0
     data = {}
 
@@ -69,6 +69,9 @@ def gen_request(files, private, anon):
 
         if private:
             data['private'] = 'on'
+
+    if description:
+      data['description'] = description
 
     for filename in files:
         i += 1
@@ -85,7 +88,7 @@ def gen_request(files, private, anon):
                 contents = file.read()
 
         data['file_ext[gistfile{0:d}]'.format(i)] = extension
-        data['file_name[gistfile{0:d}]'.format(i)] = filename
+        data['file_name[gistfile{0:d}]'.format(i)] = os.path.basename(filename)
         data['file_contents[gistfile{0:d}]'.format(i)] = contents
 
 
@@ -116,6 +119,8 @@ def main():
     parser.add_argument('-v', '--version', action='version', version=__version__)
     parser.add_argument('-g', dest='gist_id',
                         help='retreive a paste identified by the gist id')
+    parser.add_argument('-d', dest='description',
+                        help='description of the gist')
     parser.add_argument('-p', dest='private', action='store_true',
                         help='set for private gist')
     parser.add_argument('-a', dest='anon', action='store_true',
@@ -132,9 +137,9 @@ def main():
         sys.exit(1)
 
     if len(args.file) < 1:
-        data = gen_request([sys.stdin], args.private, args.anon)
+        data = gen_request([sys.stdin], args.private, args.anon, args.description)
     else:
-        data = gen_request(args.file, args.private, args.anon)
+        data = gen_request(args.file, args.private, args.anon, args.description)
 
     with urlopen(site, data) as info:
         url = info.geturl()
